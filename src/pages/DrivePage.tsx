@@ -14,6 +14,7 @@ import {
 } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { useTranslation } from "react-i18next";
+import FileThumbnail from "../components/FileThumbnail";
 
 type DriveFile = {
   id: string;
@@ -21,6 +22,7 @@ type DriveFile = {
   size: number;
   path: string;
   downloadURL: string;
+  contentType?: string; // ✅ 썸네일 분기용
   createdAt?: { seconds: number; nanoseconds: number } | null;
   isTrashed?: boolean;
 };
@@ -40,7 +42,7 @@ export default function DrivePage() {
     );
   }
 
-  // 🔥 Firestore에서 ownerUid 기준으로만 가져오고, JS에서 필터링
+  // Firestore에서 ownerUid 기준으로 가져오고, JS에서 휴지통 제외 필터
   useEffect(() => {
     const q = query(
       collection(db, "files"),
@@ -60,11 +62,12 @@ export default function DrivePage() {
               size: data.size,
               path: data.path,
               downloadURL: data.downloadURL,
+              contentType: data.contentType ?? "", // ✅ 추가
               createdAt: data.createdAt ?? null,
               isTrashed: data.isTrashed ?? false,
             };
           })
-          .filter((f) => !f.isTrashed); // 🔥 휴지통 아닌 파일만 표시
+          .filter((f) => !f.isTrashed);
 
         setFiles(list);
       },
@@ -79,7 +82,7 @@ export default function DrivePage() {
     return () => unsub();
   }, [user.uid, t]);
 
-  // 🔥 파일 업로드
+  // 파일 업로드
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -116,6 +119,7 @@ export default function DrivePage() {
             size: file.size,
             path,
             downloadURL,
+            contentType: file.type, // ✅ 핵심: 이미지/영상 구분 정보 저장
             createdAt: serverTimestamp(),
             isTrashed: false,
           });
@@ -128,12 +132,14 @@ export default function DrivePage() {
         } finally {
           setUploading(false);
           setUploadProgress(null);
+          // 같은 파일 다시 선택 가능하게 input 초기화
+          e.target.value = "";
         }
       }
     );
   };
 
-  // 🔥 휴지통으로 보내기
+  // 휴지통으로 보내기
   const moveToTrash = async (file: DriveFile) => {
     if (!window.confirm("이 파일을 휴지통으로 이동할까요?")) return;
 
@@ -155,13 +161,12 @@ export default function DrivePage() {
 
   return (
     <div className="space-y-6">
-      {/* 타이틀 */}
+      {/* 타이틀 + 업로드 */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-base sm:text-lg font-semibold">
           {t("drive.title") ?? "내 드라이브"}
         </h1>
 
-        {/* 업로드 박스 */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
           <label className="inline-flex items-center justify-center rounded-xl bg-indigo-500 px-4 py-2 text-sm font-medium text-slate-50 hover:bg-indigo-400 cursor-pointer disabled:opacity-60 w-full sm:w-auto">
             <span>
@@ -183,13 +188,11 @@ export default function DrivePage() {
                 className="h-full bg-indigo-400 transition-all duration-200"
                 style={{ width: `${uploadProgress}%` }}
               />
-
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <span className="text-[10px] font-semibold text-slate-200">
                   {uploadProgress}%
                 </span>
               </div>
-
               <div
                 className="absolute inset-0 flex items-center justify-center pointer-events-none"
                 style={{ clipPath: `inset(0 ${100 - uploadProgress}% 0 0)` }}
@@ -207,7 +210,7 @@ export default function DrivePage() {
 
       {/* 파일 리스트 */}
       <div className="rounded-xl border border-slate-800 bg-slate-900/60 overflow-hidden">
-        {/* 헤더: sm 이상에서만 보이게 */}
+        {/* 헤더: sm 이상 */}
         <div className="hidden sm:flex px-4 py-2 border-b border-slate-800 text-[11px] text-slate-400">
           <div className="flex-1">{t("drive.columnName") ?? "파일 이름"}</div>
           <div className="w-24 text-right">
@@ -224,22 +227,28 @@ export default function DrivePage() {
         {files.length === 0 ? (
           <div className="px-4 py-6 text-xs text-slate-500">
             {t("drive.empty") ??
-              "아직 업로드된 파일이 없습니다. 오른쪽 상단의 업로드 버튼을 눌러 파일을 추가하세요."}
+              "아직 업로드된 파일이 없습니다. 업로드 버튼을 눌러 파일을 추가하세요."}
           </div>
         ) : (
           <ul className="divide-y divide-slate-800">
             {files.map((file) => (
-              <li key={file.id ?? file.downloadURL} className="px-4 py-3">
-                {/* 모바일: 카드 레이아웃 */}
+              <li key={file.id} className="px-4 py-3">
+                {/* 모바일: 썸네일 카드 */}
                 <div className="sm:hidden space-y-2">
-                  <div className="min-w-0">
-                    <span className="block truncate text-sm text-slate-100">
-                      {file.name}
-                    </span>
-                    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-slate-400">
-                      <span>{((file.size ?? 0) / 1024).toFixed(1)} KB</span>
-                      <span>•</span>
-                      <span>{formatDate(file.createdAt)}</span>
+                  <div className="grid grid-cols-[96px_1fr] gap-3 items-start">
+                    <div className="w-24">
+                      <FileThumbnail file={file} />
+                    </div>
+
+                    <div className="min-w-0">
+                      <span className="block truncate text-sm text-slate-100">
+                        {file.name}
+                      </span>
+                      <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-slate-400">
+                        <span>{((file.size ?? 0) / 1024).toFixed(1)} KB</span>
+                        <span>•</span>
+                        <span>{formatDate(file.createdAt)}</span>
+                      </div>
                     </div>
                   </div>
 
@@ -261,14 +270,16 @@ export default function DrivePage() {
                   </div>
                 </div>
 
-                {/* 데스크톱: 테이블 행 레이아웃 */}
+                {/* 데스크톱: 테이블 행 */}
                 <div className="hidden sm:flex items-center text-xs">
                   <div className="flex-1 min-w-0">
                     <span className="block truncate">{file.name}</span>
                   </div>
+
                   <div className="w-24 text-right">
                     {((file.size ?? 0) / 1024).toFixed(1)} KB
                   </div>
+
                   <div className="w-44 text-right text-slate-400">
                     {formatDate(file.createdAt)}
                   </div>
@@ -282,7 +293,6 @@ export default function DrivePage() {
                     >
                       {t("drive.download") ?? "다운로드"}
                     </a>
-
                     <button
                       onClick={() => moveToTrash(file)}
                       className="text-[11px] text-red-300 hover:text-red-200"
