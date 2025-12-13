@@ -25,8 +25,10 @@ function App() {
 
   if (user === undefined) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-50 flex items-center justify-center">
-        <div className="text-sm text-slate-400">로딩 중...</div>
+      <div className="min-h-screen bg-slate-950 text-slate-50 flex items-center justify-center px-4">
+        <div className="flex flex-col items-center gap-4 sm:gap-6">
+          <span className="text-xs sm:text-sm text-slate-400">로딩 중...</span>
+        </div>
       </div>
     );
   }

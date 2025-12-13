@@ -6,12 +6,15 @@ import { LanguageSwitcher } from "../components/LanguageSwitcher";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
 import ThemeSwitcher from "../components/ThemeSwitcher";
+import { useState } from "react";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { theme } = useTheme();
   const user = auth.currentUser;
+
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -55,36 +58,78 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className={`flex h-screen ${baseBg}`}>
-      {/* Sidebar */}
-      <aside className={`w-60 border-r p-4 flex flex-col ${sidebarBg}`}>
-        <div className="text-lg font-semibold mb-6">
-          {t("app.name") ?? "cloudbox"}
+      {/* 모바일 오버레이 */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 sm:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar (모바일: 슬라이드 / 데스크톱: 고정) */}
+      <aside
+        className={[
+          "fixed z-50 inset-y-0 left-0 w-72 max-w-[80vw] border-r p-4 flex flex-col",
+          "transform transition-transform duration-200 ease-out",
+          "sm:static sm:translate-x-0 sm:w-60",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full sm:translate-x-0",
+          sidebarBg,
+        ].join(" ")}
+      >
+        <div className="flex items-center justify-between mb-6">
+          <div className="text-lg font-semibold">
+            {t("app.name") ?? "cloudbox"}
+          </div>
+
+          {/* 모바일 닫기 버튼 */}
+          <button
+            type="button"
+            className="sm:hidden text-xs text-slate-400 hover:text-slate-200 px-2 py-1 rounded-md hover:bg-slate-800/60"
+            onClick={() => setSidebarOpen(false)}
+          >
+            닫기
+          </button>
         </div>
 
         <nav className="text-sm space-y-2 flex-1">
           <button
             className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800/60"
-            onClick={() => navigate("/")}
+            onClick={() => {
+              navigate("/");
+              setSidebarOpen(false);
+            }}
           >
             {t("layout.myDrive") ?? "My Drive"}
           </button>
+
+          {/* NOTE: /recent 라우트가 실제로 없으면 이 버튼은 지우거나 라우트를 추가해야 함 */}
           <button
             className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800/60"
-            onClick={() => navigate("/recent")}
+            onClick={() => {
+              navigate("/recent");
+              setSidebarOpen(false);
+            }}
           >
             {t("layout.recent") ?? "Recent"}
           </button>
+
           <button
             className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800/60"
-            onClick={() => navigate("/trash")}
+            onClick={() => {
+              navigate("/trash");
+              setSidebarOpen(false);
+            }}
           >
             {t("layout.trash") ?? "Trash"}
           </button>
 
-          {/* 계정 설정 페이지 이동 */}
+          {/* 계정 */}
           <button
             className="mt-4 w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800/60 text-slate-300"
-            onClick={() => navigate("/account")}
+            onClick={() => {
+              navigate("/account");
+              setSidebarOpen(false);
+            }}
           >
             {t("layout.account") ?? "Account"}
           </button>
@@ -92,22 +137,32 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       </aside>
 
       {/* Main 영역 */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         <header
-          className={`h-14 border-b flex items-center px-4 gap-3 ${headerBg}`}
+          className={`h-14 border-b flex items-center px-3 sm:px-4 gap-3 ${headerBg}`}
         >
-          <div className="flex-1 text-xs text-slate-500">
+          {/* 모바일 햄버거 */}
+          <button
+            type="button"
+            className="sm:hidden inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs text-slate-300 hover:bg-slate-800/60"
+            onClick={() => setSidebarOpen(true)}
+          >
+            메뉴
+          </button>
+
+          {/* 태그라인: 모바일에서는 숨김 */}
+          <div className="hidden sm:block flex-1 text-xs text-slate-500 truncate">
             {t("app.tagline") ?? "A simple cloud storage for you"}
           </div>
 
-          {/* 오른쪽: 언어 + 프로필 + 로그아웃 */}
-          <div className="flex items-center gap-3">
-            <ThemeSwitcher /> {/* ← 이 줄 추가 */}
+          {/* 오른쪽 영역 */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <ThemeSwitcher />
             <LanguageSwitcher />
-            {/* 프로필 미니 카드 (아바타 + 이름) */}
+
+            {/* 프로필 미니 카드: 모바일에서는 이름 숨기고 아바타만 */}
             {user && (
               <div className="flex items-center gap-2">
-                {/* 아바타 */}
                 {user.photoURL ? (
                   <img
                     src={user.photoURL}
@@ -119,8 +174,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                     {initial.toUpperCase()}
                   </div>
                 )}
-                <div className="flex flex-col">
-                  <span className="text-xs font-medium text-slate-100 truncate max-w-[130px]">
+
+                <div className="hidden sm:flex flex-col">
+                  <span className="text-xs font-medium text-slate-100 truncate max-w-[160px]">
                     {user.displayName || user.email}
                   </span>
                   <button
@@ -133,16 +189,21 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                 </div>
               </div>
             )}
+
+            {/* 로그아웃: mt-4 제거(헤더에선 부자연스러움) */}
             <button
               onClick={handleLogout}
-              className="mt-4 text-xs text-slate-400 hover:text-red-300"
+              className="text-xs text-slate-400 hover:text-red-300"
             >
               {t("layout.logout") ?? "Logout"}
             </button>
           </div>
         </header>
 
-        <main className={`flex-1 overflow-auto p-6 ${cardBg}`}>{children}</main>
+        {/* main padding도 반응형 */}
+        <main className={`flex-1 overflow-auto p-4 sm:p-6 ${cardBg}`}>
+          {children}
+        </main>
       </div>
     </div>
   );

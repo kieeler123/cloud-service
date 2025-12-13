@@ -155,71 +155,68 @@ export default function DrivePage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-lg font-semibold">
-        {t("drive.title") ?? "내 드라이브"}
-      </h1>
+      {/* 타이틀 */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-base sm:text-lg font-semibold">
+          {t("drive.title") ?? "내 드라이브"}
+        </h1>
+
+        {/* 업로드 박스 */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+          <label className="inline-flex items-center justify-center rounded-xl bg-indigo-500 px-4 py-2 text-sm font-medium text-slate-50 hover:bg-indigo-400 cursor-pointer disabled:opacity-60 w-full sm:w-auto">
+            <span>
+              {uploading
+                ? t("drive.uploading") ?? "업로드 중..."
+                : `+ ${t("drive.uploadButton") ?? "Upload"}`}
+            </span>
+            <input
+              type="file"
+              className="hidden"
+              onChange={handleUpload}
+              disabled={uploading}
+            />
+          </label>
+
+          {uploading && uploadProgress !== null && (
+            <div className="w-full sm:w-64 h-2.5 bg-slate-800 rounded-full overflow-hidden relative">
+              <div
+                className="h-full bg-indigo-400 transition-all duration-200"
+                style={{ width: `${uploadProgress}%` }}
+              />
+
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <span className="text-[10px] font-semibold text-slate-200">
+                  {uploadProgress}%
+                </span>
+              </div>
+
+              <div
+                className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                style={{ clipPath: `inset(0 ${100 - uploadProgress}% 0 0)` }}
+              >
+                <span className="text-[10px] font-semibold text-slate-900">
+                  {uploadProgress}%
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
       {error && <div className="text-red-300 text-sm">{error}</div>}
 
-      {/* 업로드 박스 */}
-      <div className="inline-flex items-center gap-4">
-        <label className="rounded-xl bg-indigo-500 px-4 py-2 text-sm font-medium text-slate-50 hover:bg-indigo-400 cursor-pointer disabled:opacity-60">
-          <span>
-            {uploading
-              ? t("drive.uploading") ?? "업로드 중..."
-              : `+ ${t("drive.uploadButton") ?? "Upload"}`}
-          </span>
-          <input
-            type="file"
-            className="hidden"
-            onChange={handleUpload}
-            disabled={uploading}
-          />
-        </label>
-
-        {uploading && uploadProgress !== null && (
-          <div className="mt-2 w-64 h-2.5 bg-slate-800 rounded-full overflow-hidden relative">
-            {/* 채워지는 바 */}
-            <div
-              className="h-full bg-indigo-400 transition-all duration-200"
-              style={{ width: `${uploadProgress}%` }}
-            />
-
-            {/* 1층: 전체 영역에 깔리는 밝은 글자 */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <span className="text-[10px] font-semibold text-slate-200">
-                {uploadProgress}%
-              </span>
-            </div>
-
-            {/* 2층: '채워진 부분'만 보이는 어두운 글자 */}
-            <div
-              className="absolute inset-0 flex items-center justify-center pointer-events-none"
-              style={{
-                // 오른쪽을 (100 - 진행률)% 만큼 잘라서,
-                // 왼쪽 = 바가 찬 부분에만 이 레이어가 보이게 됨
-                clipPath: `inset(0 ${100 - uploadProgress}% 0 0)`,
-              }}
-            >
-              <span className="text-[10px] font-semibold text-slate-900">
-                {uploadProgress}%
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
-
       {/* 파일 리스트 */}
-      <div className="rounded-xl border border-slate-800 bg-slate-900/60">
-        <div className="px-4 py-2 border-b border-slate-800 text-[11px] text-slate-400 flex">
+      <div className="rounded-xl border border-slate-800 bg-slate-900/60 overflow-hidden">
+        {/* 헤더: sm 이상에서만 보이게 */}
+        <div className="hidden sm:flex px-4 py-2 border-b border-slate-800 text-[11px] text-slate-400">
           <div className="flex-1">{t("drive.columnName") ?? "파일 이름"}</div>
-          <div className="w-32 text-right">
+          <div className="w-24 text-right">
             {t("drive.columnSize") ?? "크기"}
           </div>
-          <div className="w-48 text-right">
+          <div className="w-44 text-right">
             {t("drive.columnCreatedAt") ?? "업로드 시간"}
           </div>
-          <div className="w-32 text-right">
+          <div className="w-40 text-right">
             {t("drive.columnActions") ?? "작업"}
           </div>
         </div>
@@ -230,34 +227,71 @@ export default function DrivePage() {
               "아직 업로드된 파일이 없습니다. 오른쪽 상단의 업로드 버튼을 눌러 파일을 추가하세요."}
           </div>
         ) : (
-          <ul className="divide-y divide-slate-800 text-xs">
+          <ul className="divide-y divide-slate-800">
             {files.map((file) => (
-              <div className="flex-1 min-w-0">
-                <span className="block truncate">{file.name}</span>
-                <div className="w-32 text-right">
-                  {(file.size / 1024).toFixed(1)} KB
-                </div>
-                <div className="w-48 text-right text-slate-400">
-                  {formatDate(file.createdAt)}
+              <li key={file.id ?? file.downloadURL} className="px-4 py-3">
+                {/* 모바일: 카드 레이아웃 */}
+                <div className="sm:hidden space-y-2">
+                  <div className="min-w-0">
+                    <span className="block truncate text-sm text-slate-100">
+                      {file.name}
+                    </span>
+                    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-slate-400">
+                      <span>{((file.size ?? 0) / 1024).toFixed(1)} KB</span>
+                      <span>•</span>
+                      <span>{formatDate(file.createdAt)}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-3">
+                    <a
+                      href={file.downloadURL}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[11px] text-indigo-300 hover:text-indigo-200"
+                    >
+                      {t("drive.download") ?? "다운로드"}
+                    </a>
+                    <button
+                      onClick={() => moveToTrash(file)}
+                      className="text-[11px] text-red-300 hover:text-red-200"
+                    >
+                      {t("drive.moveToTrash") ?? "휴지통"}
+                    </button>
+                  </div>
                 </div>
 
-                <div className="w-32 text-right space-x-3">
-                  <a
-                    href={file.downloadURL}
-                    target="_blank"
-                    className="text-[11px] text-indigo-300 hover:text-indigo-200"
-                  >
-                    {t("drive.download") ?? "다운로드"}
-                  </a>
+                {/* 데스크톱: 테이블 행 레이아웃 */}
+                <div className="hidden sm:flex items-center text-xs">
+                  <div className="flex-1 min-w-0">
+                    <span className="block truncate">{file.name}</span>
+                  </div>
+                  <div className="w-24 text-right">
+                    {((file.size ?? 0) / 1024).toFixed(1)} KB
+                  </div>
+                  <div className="w-44 text-right text-slate-400">
+                    {formatDate(file.createdAt)}
+                  </div>
 
-                  <button
-                    onClick={() => moveToTrash(file)}
-                    className="text-[11px] text-red-300 hover:text-red-200"
-                  >
-                    {t("drive.moveToTrash") ?? "휴지통"}
-                  </button>
+                  <div className="w-40 text-right space-x-3">
+                    <a
+                      href={file.downloadURL}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[11px] text-indigo-300 hover:text-indigo-200"
+                    >
+                      {t("drive.download") ?? "다운로드"}
+                    </a>
+
+                    <button
+                      onClick={() => moveToTrash(file)}
+                      className="text-[11px] text-red-300 hover:text-red-200"
+                    >
+                      {t("drive.moveToTrash") ?? "휴지통"}
+                    </button>
+                  </div>
                 </div>
-              </div>
+              </li>
             ))}
           </ul>
         )}

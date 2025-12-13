@@ -103,17 +103,20 @@ export default function TrashPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-lg font-semibold">{t("trash.title") ?? "휴지통"}</h1>
+      <h1 className="text-base sm:text-lg font-semibold">
+        {t("trash.title") ?? "휴지통"}
+      </h1>
 
       {error && <div className="text-red-300 text-sm">{error}</div>}
 
-      <div className="rounded-xl border border-slate-800 bg-slate-900/60">
-        <div className="px-4 py-2 border-b border-slate-800 text-[11px] text-slate-400 flex">
+      <div className="rounded-xl border border-slate-800 bg-slate-900/60 overflow-hidden">
+        {/* 헤더: sm 이상에서만 */}
+        <div className="hidden sm:flex px-4 py-2 border-b border-slate-800 text-[11px] text-slate-400">
           <div className="flex-1">{t("trash.columnName") ?? "파일 이름"}</div>
-          <div className="w-48 text-right">
+          <div className="w-44 text-right">
             {t("trash.columnTrashedAt") ?? "삭제된 시간"}
           </div>
-          <div className="w-32 text-right">
+          <div className="w-40 text-right">
             {t("trash.columnActions") ?? "작업"}
           </div>
         </div>
@@ -123,27 +126,58 @@ export default function TrashPage() {
             {t("trash.empty") ?? "휴지통이 비어 있습니다."}
           </div>
         ) : (
-          <ul className="divide-y divide-slate-800 text-xs">
+          <ul className="divide-y divide-slate-800">
             {files.map((file) => (
-              <li key={file.id} className="px-4 py-2 flex items-center">
-                <div className="flex-1 truncate">{file.name}</div>
-                <div className="w-48 text-right text-slate-400">
-                  {formatDate(file.trashedAt)}
+              <li key={file.id} className="px-4 py-3">
+                {/* 모바일: 카드 레이아웃 */}
+                <div className="sm:hidden space-y-2">
+                  <div className="min-w-0">
+                    <div className="truncate text-sm text-slate-100">
+                      {file.name}
+                    </div>
+                    <div className="mt-1 text-[11px] text-slate-400">
+                      {formatDate(file.trashedAt)}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-3">
+                    <button
+                      onClick={() => restoreFile(file)}
+                      className="text-[11px] text-indigo-300 hover:text-indigo-200"
+                    >
+                      {t("trash.restore") ?? "복원"}
+                    </button>
+                    <button
+                      onClick={() => deleteForever(file)}
+                      className="text-[11px] text-red-300 hover:text-red-200"
+                    >
+                      {t("trash.deleteForever") ?? "완전 삭제"}
+                    </button>
+                  </div>
                 </div>
 
-                <div className="w-32 text-right space-x-3">
-                  <button
-                    onClick={() => restoreFile(file)}
-                    className="text-[11px] text-indigo-300 hover:text-indigo-200"
-                  >
-                    {t("trash.restore") ?? "복원"}
-                  </button>
-                  <button
-                    onClick={() => deleteForever(file)}
-                    className="text-[11px] text-red-300 hover:text-red-200"
-                  >
-                    {t("trash.deleteForever") ?? "완전 삭제"}
-                  </button>
+                {/* 데스크톱: 테이블 행 */}
+                <div className="hidden sm:flex items-center text-xs">
+                  <div className="flex-1 min-w-0 truncate">{file.name}</div>
+
+                  <div className="w-44 text-right text-slate-400">
+                    {formatDate(file.trashedAt)}
+                  </div>
+
+                  <div className="w-40 text-right space-x-3">
+                    <button
+                      onClick={() => restoreFile(file)}
+                      className="text-[11px] text-indigo-300 hover:text-indigo-200"
+                    >
+                      {t("trash.restore") ?? "복원"}
+                    </button>
+                    <button
+                      onClick={() => deleteForever(file)}
+                      className="text-[11px] text-red-300 hover:text-red-200"
+                    >
+                      {t("trash.deleteForever") ?? "완전 삭제"}
+                    </button>
+                  </div>
                 </div>
               </li>
             ))}
