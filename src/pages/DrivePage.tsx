@@ -232,8 +232,8 @@ export default function DrivePage() {
         ) : (
           <ul className="divide-y divide-slate-800 text-xs">
             {files.map((file) => (
-              <li key={file.id} className="px-4 py-2 flex items-center">
-                <div className="flex-1 truncate">{file.name}</div>
+              <div className="flex-1 min-w-0">
+                <span className="block truncate">{file.name}</span>
                 <div className="w-32 text-right">
                   {(file.size / 1024).toFixed(1)} KB
                 </div>
@@ -257,7 +257,7 @@ export default function DrivePage() {
                     {t("drive.moveToTrash") ?? "휴지통"}
                   </button>
                 </div>
-              </li>
+              </div>
             ))}
           </ul>
         )}
