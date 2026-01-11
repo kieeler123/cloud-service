@@ -1,163 +1,165 @@
-📄 README.md (최종 4개 언어 버전 포함)
+# Cloud Drive (React + Firebase) / クラウド型ファイル管理アプリ
 
-아래 내용 그대로 README.md 파일로 넣으면 됨.
+React + TypeScript + TailwindCSS + Firebase を用いて開発した  
+**クラウドドライブ風Webアプリ**です。
 
-# 📁 Cloud Drive (React + Firebase)
+本プロジェクトは以下2つの目的を両立する形で設計しています。
 
-A modern cloud-drive style web application built with **React + TypeScript + TailwindCSS + Firebase**.  
-This project is designed as a practical portfolio for Japanese job interviews and future digital-nomad development.
-
-日本企業の面接向けポートフォリオとして設計された  
-**クラウド型ファイル管理アプリ**です。
-
-本项目是作为面向日本企业的求职作品集，同时也是未来数字游牧工作形态的基础项目。
+- ✅ 日本企業の面接向けポートフォリオ（設計思想・実装力の証明）
+- ✅ 将来的なデジタルノマド活動に向けた長期拡張プロジェクト
 
 ---
 
-# 🌐 Available Languages / 対応言語 / 可用语言
-- 🇯🇵 **Japanese**
-- 🇺🇸 **English**
-- 🇰🇷 **Korean**
-- 🇨🇳 **Chinese (Simplified)**
+## 🌐 Languages / 対応言語
+**Languages:** 日本語 | [English](README.en.md) | [한국어](README.ko.md)
 
-UI は **i18next** によって動的に切り替えできます。  
-The UI can dynamically switch languages using i18next.
+UIは **react-i18next** により動的に切り替え可能です。
 
 ---
 
-# 🚀 Features / 機能一覧 / 功能特性
+## 🚀 Features / 機能一覧
 
-## 🔐 Authentication
-- Email & Password Login
+### 🔐 Authentication
+- Email / Password Login
 - Google Login
 - Logout
 - Delete Account
 - Update Display Name
 
-## 🌍 Multi-language (i18n)
-- JA / EN / KO / ZH 切替
-- 全 UI 文言対応済み
+### 🌍 Multi-language (i18n)
+- 日本語 / English / 한국어 / 中文(简体)
+- すべてのUI文言を多言語対応
 
-## 🎨 Theme System
-- Dark / Light / Sky themes
-- ThemeContext による管理
-- Header のボタンで即時切替
+### 🎨 Theme System
+- Dark / Light / Sky テーマ
+- React Context（ThemeContext）による状態管理
+- Headerボタンで即時切り替え
 
-## 📤 File Upload
-- Firebase Storage upload
-- Upload progress bar + percentage
-- Realtime Firestore metadata
-- Error handling 完備
+### 📤 File Upload
+- Firebase Storage へのアップロード
+- Upload progress bar（%表示）
+- Firestore に metadata をリアルタイム保存
+- 例外処理 / エラーハンドリング対応
 
-## 🗂 My Drive
-- Owner 基準でファイル取得
+### 🗂 My Drive
+- owner(uid) ベースでファイル取得
 - Newest first order
 - Download
 - Move to trash
-- i18n table support
+- i18n対応テーブル表示
 
-## 🗑 Trash
+### 🗑 Trash
 - Restore file
 - Delete forever
-- isTrashed フラグ方式
+- `isTrashed` フラグ方式（論理削除）
 - リアルタイム更新
 
-## 👤 Account Settings
-- Change display name
-- View email
-- Delete account (re-auth required check)
+### 👤 Account Settings
+- 表示名変更
+- Email確認
+- アカウント削除（re-auth requiredチェック）
 
 ---
 
-# 🧩 Tech Stack / 技术栈
+## ⭐ 面接ポイント（実装ハイライト）
+- React Context を用いて **Theme / UI状態**を管理
+- i18next による **完全な多言語UI切替**
+- Firebase Auth / Firestore / Storage の統合実装
+- ゴミ箱は `isTrashed` による **論理削除設計**
+  - 復元可能
+  - 完全削除（Delete forever）と責務分離
+- アップロード進捗表示など、ユーザー体験を意識したUI実装
+
+---
+
+## 🔐 Security / 権限設計
+- Firebase Authentication によりユーザー認証
+- Firestore / Storage は Firebase Rules によりアクセス制御
+- データ取得は owner(uid) を基準に行い、他ユーザーのデータにはアクセス不可
+
+---
+
+## 🧩 Tech Stack / 技術スタック
 
 | Category | Stack |
-|---------|-------|
+| --- | --- |
 | Frontend | React 18 / TypeScript / Vite / TailwindCSS |
 | State | React Context API |
 | Auth | Firebase Authentication |
 | Database | Firestore |
 | Storage | Firebase Storage |
 | i18n | react-i18next |
-| UI | Tailwind CSS |
 | Deployment | Vercel (recommended) |
 
 ---
 
-# 📦 Folder Structure
-
-
-
+## 📦 Folder Structure
+```txt
 src/
-├─ components/
-│ ├─ LanguageSwitcher.tsx
-│ ├─ ThemeSwitcher.tsx
-├─ contexts/
-│ └─ ThemeContext.tsx
-├─ layouts/
-│ └─ AppLayout.tsx
-├─ pages/
-│ ├─ DrivePage.tsx
-│ ├─ TrashPage.tsx
-│ ├─ LoginPage.tsx
-│ └─ AccountPage.tsx
-├─ i18n/
-│ ├─ en.json
-│ ├─ ja.json
-│ ├─ ko.json
-│ ├─ zh.json
-├─ lib/firebase.ts
-├─ App.tsx
-└─ main.tsx
-
-
----
-
-# 🛠 How to Run
-
-### 1. Install packages
-
-
+ ├─ components/
+ │   ├─ LanguageSwitcher.tsx
+ │   └─ ThemeSwitcher.tsx
+ ├─ contexts/
+ │   └─ ThemeContext.tsx
+ ├─ layouts/
+ │   └─ AppLayout.tsx
+ ├─ pages/
+ │   ├─ DrivePage.tsx
+ │   ├─ TrashPage.tsx
+ │   ├─ LoginPage.tsx
+ │   └─ AccountPage.tsx
+ ├─ i18n/
+ │   ├─ en.json
+ │   ├─ ja.json
+ │   ├─ ko.json
+ │   └─ zh.json
+ ├─ lib/
+ │   └─ firebase.ts
+ ├─ App.tsx
+ └─ main.tsx
+🛠 How to Run / 実行方法
+1) Install packages
+bash
+コードをコピーする
 npm install
+2) Set Firebase environment variables
+.env を作成し、以下を設定してください。
 
-
-### 2. Set Firebase environment variables
-
-
+env
+コードをコピーする
 VITE_FIREBASE_API_KEY=xxxx
 VITE_FIREBASE_AUTH_DOMAIN=xxxx
 VITE_FIREBASE_PROJECT_ID=xxxx
 VITE_FIREBASE_STORAGE_BUCKET=xxxx
 VITE_FIREBASE_MESSAGING_SENDER_ID=xxxx
 VITE_FIREBASE_APP_ID=xxxx
-
-
-### 3. Start dev server
-
-
+3) Start dev server
+bash
+コードをコピーする
 npm run dev
+🎯 Purpose / 目的
+日本企業向けポートフォリオとしての設計・実装経験の証明
 
+Firebase を活用したフル機能実装（Auth / DB / Storage）
 
----
+将来的に Supabase / AWS へ移行可能な構造を意識
 
-# 🎯 Purpose
+デジタルノマド向けの長期プロジェクト基盤作り
 
-- 日本企業向けポートフォリオ  
-- Firebase 実装経験の積み上げ  
-- 将来的に Supabase / AWS へ移行可能な構造  
-- デジタルノマド向けの長期プロジェクト基盤作り  
+🔮 Future Plans / 今後の拡張
+Folders
 
----
+Drag & Drop upload
 
-# 🔮 Future Plans
-- Folders  
-- Drag & Drop upload  
-- File preview modal  
-- User profile avatar  
-- Supabase migration version  
-- Full client-server separation  
+File preview modal
 
----
+User profile avatar
 
-# 👤 Author
-**디지털노마드를꿈꾸다**
+Supabase migration version
+
+Full client-server separation
+
+👤 Author
+디지털노마드를꿈꾸다
+
+GitHub: https://github.com/kieeler123
