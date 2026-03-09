@@ -1,4 +1,4 @@
-import { getMongoDb } from "@/app/config/mongodb.js";
+import { getMongoDb } from "../../../app/config/mongodb.js";
 import { CloudFile } from "../model/cloudFile.types.js";
 
 const COLLECTION = "cloud_files";
