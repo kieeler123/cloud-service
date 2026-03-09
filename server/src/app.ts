@@ -11,6 +11,12 @@ app.use(
   }),
 );
 
+app.get("/", (_req, res) => {
+  res.json({
+    message: "Cloud API server running",
+  });
+});
+
 app.use(express.json());
 
 app.get("/health", (_req, res) => {
