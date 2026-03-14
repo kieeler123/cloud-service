@@ -1,4 +1,4 @@
-import { adminDb } from "@/lib/firebaseAdmin.js";
+import { adminDb } from "../../../lib/firebaseAdmin.js";
 
 type CreateCloudFileMetaParams = {
   fileId: string;
