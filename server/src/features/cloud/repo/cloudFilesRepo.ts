@@ -11,13 +11,8 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase.js";
 import { adminDb, adminStorage } from "@/lib/firebaseAdmin.js";
-import {
-  DeleteCloudFileForeverParams,
-  DriveFile,
-  FindDriveFilesPageParams,
-  RestoreCloudFileParams,
-  TrashDuplicateDriveFilesParams,
-} from "@/types/drive.js";
+import { TrashDuplicateDriveFilesParams } from "@/types/drive.js";
+import { createCloudFileMeta } from "../api/cloudFilesApi.js";
 
 const COLLECTION = "cloud_files";
 
@@ -89,6 +84,135 @@ export async function trashDuplicateDriveFiles({
   };
 }
 
+type FindDriveFilesPageParams = {
+  ownerUid: string;
+  pageSize: number;
+  cursor?: string | null;
+};
+
+type RestoreCloudFileParams = {
+  ownerUid: string;
+  fileId: string;
+};
+
+type DeleteCloudFileForeverParams = {
+  ownerUid: string;
+  fileId: string;
+};
+
+type UploadCloudFileParams = {
+  ownerUid: string;
+  file: Express.Multer.File;
+};
+
+function detectDriveFileKind(file: {
+  mimetype?: string;
+  originalname?: string;
+}) {
+  const mime = file.mimetype ?? "";
+  const name = file.originalname ?? "";
+  const ext = name.split(".").pop()?.toLowerCase() ?? "";
+
+  if (mime.startsWith("image/")) return "image";
+  if (mime.startsWith("video/")) return "video";
+  if (mime.startsWith("audio/")) return "audio";
+  if (["pdf"].includes(ext)) return "pdf";
+  return "file";
+}
+
+export async function uploadCloudFile({
+  ownerUid,
+  file,
+}: UploadCloudFileParams) {
+  // 1) duplicate check
+  const duplicateSnapshot = await adminDb
+    .collection("files")
+    .where("ownerUid", "==", ownerUid)
+    .where("name", "==", file.originalname)
+    .where("size", "==", file.size)
+    .where("isTrashed", "==", false)
+    .limit(1)
+    .get();
+
+  if (!duplicateSnapshot.empty) {
+    throw new Error("DUPLICATE_FILE");
+  }
+
+  // 2) upload
+  const safeName = file.originalname.replace(/[^\w.\-가-힣]/g, "_");
+  const path = `uploads/${ownerUid}/${Date.now()}_${safeName}`;
+
+  const bucketFile = adminStorage.file(path);
+
+  await bucketFile.save(file.buffer, {
+    metadata: {
+      contentType: file.mimetype || "application/octet-stream",
+    },
+    resumable: false,
+  });
+
+  const [downloadURL] = await bucketFile.getSignedUrl({
+    action: "read",
+    expires: "2500-01-01",
+  });
+
+  const newDocRef = adminDb.collection("files").doc();
+
+  await newDocRef.set({
+    ownerUid,
+    name: file.originalname,
+    size: file.size,
+    path,
+    downloadURL,
+    contentType: file.mimetype || "application/octet-stream",
+    createdAt: new Date(),
+    isTrashed: false,
+  });
+
+  const bucket = adminStorage.name;
+  const kind = detectDriveFileKind(file);
+
+  await createCloudFileMeta({
+    fileId: newDocRef.id,
+    ownerUid,
+    allowedUserUids: [ownerUid],
+
+    provider: "firebase",
+    projectKey: "firebase-old",
+    bucket,
+    path,
+    storageKey: `firebase|${bucket}|${path}`,
+
+    originalName: file.originalname,
+    mimeType: file.mimetype || "application/octet-stream",
+    size: file.size,
+    kind,
+
+    title: "",
+    seriesTitle: "",
+    episodeNumber: null,
+    contentType: kind,
+    isPlayable: kind === "video",
+    displayOrder: null,
+    memo: "",
+    tags: [],
+
+    status: "ready",
+    migrationState: "not_required",
+    source: "new-upload",
+    sourceFileRef: "",
+
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  });
+
+  return {
+    fileId: newDocRef.id,
+    path,
+    downloadURL,
+  };
+}
+
 export async function findDriveFilesPageByOwnerUid({
   ownerUid,
   pageSize,
@@ -110,9 +234,8 @@ export async function findDriveFilesPageByOwnerUid({
 
   const snapshot = await q.get();
 
-  const items: DriveFile[] = snapshot.docs.map((docSnap) => {
+  const items = snapshot.docs.map((docSnap) => {
     const data = docSnap.data();
-
     return {
       id: docSnap.id,
       name: data.name,
@@ -125,14 +248,12 @@ export async function findDriveFilesPageByOwnerUid({
     };
   });
 
-  const nextCursor =
-    snapshot.docs.length > 0
-      ? snapshot.docs[snapshot.docs.length - 1].id
-      : null;
-
   return {
     items,
-    nextCursor,
+    nextCursor:
+      snapshot.docs.length > 0
+        ? snapshot.docs[snapshot.docs.length - 1].id
+        : null,
     hasMore: snapshot.docs.length === pageSize,
   };
 }

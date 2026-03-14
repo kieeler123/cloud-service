@@ -1,4 +1,5 @@
 import express from "express";
+import multer from "multer";
 import {
   trashCloudFilesByFileIds,
   trashDuplicateDriveFiles,
@@ -6,10 +7,18 @@ import {
   findTrashFilesByOwnerUid,
   restoreCloudFileById,
   deleteCloudFileForeverById,
+  uploadCloudFile,
 } from "../repo/cloudFilesRepo.js";
 import { requireAuth } from "../middlewares/requireAuth.js";
 
 const cloudRoutes = express.Router();
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 1024 * 1024 * 500, // 500MB
+  },
+});
 
 cloudRoutes.get("/", requireAuth, async (req, res) => {
   try {
@@ -37,6 +46,52 @@ cloudRoutes.get("/", requireAuth, async (req, res) => {
     });
   }
 });
+
+cloudRoutes.post(
+  "/upload",
+  requireAuth,
+  upload.single("file"),
+  async (req, res) => {
+    try {
+      const ownerUid = req.user!.uid;
+      const file = req.file;
+
+      if (!file) {
+        return res.status(400).json({
+          ok: false,
+          code: "MISSING_FILE",
+          message: "File is required",
+        });
+      }
+
+      const result = await uploadCloudFile({
+        ownerUid,
+        file,
+      });
+
+      res.status(201).json({
+        ok: true,
+        ...result,
+      });
+    } catch (error) {
+      console.error("upload route error:", error);
+
+      if (error instanceof Error && error.message === "DUPLICATE_FILE") {
+        return res.status(409).json({
+          ok: false,
+          code: "DUPLICATE_FILE",
+          message: "Duplicate file already exists",
+        });
+      }
+
+      res.status(500).json({
+        ok: false,
+        code: "FAILED_TO_UPLOAD_FILE",
+        message: "Failed to upload file",
+      });
+    }
+  },
+);
 
 cloudRoutes.get("/trash", requireAuth, async (req, res) => {
   try {
@@ -70,11 +125,9 @@ cloudRoutes.patch("/:fileId/restore", requireAuth, async (req, res) => {
       });
     }
 
-    const fileId = rawFileId;
-
     await restoreCloudFileById({
       ownerUid,
-      fileId,
+      fileId: rawFileId,
     });
 
     res.json({
@@ -103,20 +156,9 @@ cloudRoutes.delete("/:fileId", requireAuth, async (req, res) => {
       });
     }
 
-    const fileId = rawFileId;
-
-    await restoreCloudFileById({
-      ownerUid,
-      fileId,
-    });
-
-    res.json({
-      ok: true,
-    });
-
     await deleteCloudFileForeverById({
       ownerUid,
-      fileId,
+      fileId: rawFileId,
     });
 
     res.json({
