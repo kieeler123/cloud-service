@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
 import type { MeResponse } from "@/shared/types/auth";
 
 async function fetchMe(token: string): Promise<MeResponse> {
@@ -20,7 +19,6 @@ async function fetchMe(token: string): Promise<MeResponse> {
 
 export default function AccountPage() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
 
   const [token, setToken] = useState("");
   const [loading, setLoading] = useState(true);
