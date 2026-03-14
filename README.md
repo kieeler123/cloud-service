@@ -1,165 +1,190 @@
-# Cloud Drive (React + Firebase) / クラウド型ファイル管理アプリ
+# Cloud Service (Experimental Project)
 
-React + TypeScript + TailwindCSS + Firebase を用いて開発した  
-**クラウドドライブ風Webアプリ**です。
+Cloud Service is an experimental backend architecture project focused on building a modular cloud storage system.
 
-本プロジェクトは以下2つの目的を両立する形で設計しています。
+The project explores how different storage systems can be combined in a single architecture while keeping responsibilities clearly separated.
 
-- ✅ 日本企業の面接向けポートフォリオ（設計思想・実装力の証明）
-- ✅ 将来的なデジタルノマド活動に向けた長期拡張プロジェクト
+This project is intentionally designed as a **closed experimental system** and is not intended to be a public service.
 
 ---
 
-## 🌐 Languages / 対応言語
-**Languages:** 日本語 | [English](README.en.md) | [한국어](README.ko.md)
+# Project Goal
 
-UIは **react-i18next** により動的に切り替え可能です。
+The goal of this project is to experiment with a scalable cloud architecture that separates responsibilities across different storage technologies.
 
----
+Instead of relying on a single database, the system uses multiple services depending on their strengths.
 
-## 🚀 Features / 機能一覧
-
-### 🔐 Authentication
-- Email / Password Login
-- Google Login
-- Logout
-- Delete Account
-- Update Display Name
-
-### 🌍 Multi-language (i18n)
-- 日本語 / English / 한국어 / 中文(简体)
-- すべてのUI文言を多言語対応
-
-### 🎨 Theme System
-- Dark / Light / Sky テーマ
-- React Context（ThemeContext）による状態管理
-- Headerボタンで即時切り替え
-
-### 📤 File Upload
-- Firebase Storage へのアップロード
-- Upload progress bar（%表示）
-- Firestore に metadata をリアルタイム保存
-- 例外処理 / エラーハンドリング対応
-
-### 🗂 My Drive
-- owner(uid) ベースでファイル取得
-- Newest first order
-- Download
-- Move to trash
-- i18n対応テーブル表示
-
-### 🗑 Trash
-- Restore file
-- Delete forever
-- `isTrashed` フラグ方式（論理削除）
-- リアルタイム更新
-
-### 👤 Account Settings
-- 表示名変更
-- Email確認
-- アカウント削除（re-auth requiredチェック）
+This allows the architecture to remain flexible and easier to evolve.
 
 ---
 
-## ⭐ 面接ポイント（実装ハイライト）
-- React Context を用いて **Theme / UI状態**を管理
-- i18next による **完全な多言語UI切替**
-- Firebase Auth / Firestore / Storage の統合実装
-- ゴミ箱は `isTrashed` による **論理削除設計**
-  - 復元可能
-  - 完全削除（Delete forever）と責務分離
-- アップロード進捗表示など、ユーザー体験を意識したUI実装
+# Relationship with Other Projects
+
+This project is **completely independent from the Shiori project**.
+
+Shiori focuses on content and user-facing services, while Cloud Service is used as an **internal experimental environment** to test backend architecture, storage strategies, and system design decisions.
 
 ---
 
-## 🔐 Security / 権限設計
-- Firebase Authentication によりユーザー認証
-- Firestore / Storage は Firebase Rules によりアクセス制御
-- データ取得は owner(uid) を基準に行い、他ユーザーのデータにはアクセス不可
+# Architecture Overview
+
+The system follows a **Client / Server separation architecture**.
+
+### Client
+
+The client layer is responsible only for the user interface.
+
+Responsibilities
+
+- UI rendering
+- user interaction
+- state management
+- API communication
+
+The client does not directly access databases or storage systems.
 
 ---
 
-## 🧩 Tech Stack / 技術スタック
+### Server
 
-| Category | Stack |
-| --- | --- |
-| Frontend | React 18 / TypeScript / Vite / TailwindCSS |
-| State | React Context API |
-| Auth | Firebase Authentication |
-| Database | Firestore |
-| Storage | Firebase Storage |
-| i18n | react-i18next |
-| Deployment | Vercel (recommended) |
+The server layer is responsible for application logic and data processing.
+
+Responsibilities
+
+- database access
+- authentication validation
+- permission control
+- file storage management
+- metadata processing
+
+All data operations are handled by the server.
 
 ---
 
-## 📦 Folder Structure
-```txt
-src/
- ├─ components/
- │   ├─ LanguageSwitcher.tsx
- │   └─ ThemeSwitcher.tsx
- ├─ contexts/
- │   └─ ThemeContext.tsx
- ├─ layouts/
- │   └─ AppLayout.tsx
- ├─ pages/
- │   ├─ DrivePage.tsx
- │   ├─ TrashPage.tsx
- │   ├─ LoginPage.tsx
- │   └─ AccountPage.tsx
- ├─ i18n/
- │   ├─ en.json
- │   ├─ ja.json
- │   ├─ ko.json
- │   └─ zh.json
- ├─ lib/
- │   └─ firebase.ts
- ├─ App.tsx
- └─ main.tsx
-🛠 How to Run / 実行方法
-1) Install packages
-bash
-コードをコピーする
-npm install
-2) Set Firebase environment variables
-.env を作成し、以下を設定してください。
+# Storage Architecture
 
-env
-コードをコピーする
-VITE_FIREBASE_API_KEY=xxxx
-VITE_FIREBASE_AUTH_DOMAIN=xxxx
-VITE_FIREBASE_PROJECT_ID=xxxx
-VITE_FIREBASE_STORAGE_BUCKET=xxxx
-VITE_FIREBASE_MESSAGING_SENDER_ID=xxxx
-VITE_FIREBASE_APP_ID=xxxx
-3) Start dev server
-bash
-コードをコピーする
-npm run dev
-🎯 Purpose / 目的
-日本企業向けポートフォリオとしての設計・実装経験の証明
+The project intentionally separates different storage responsibilities.
 
-Firebase を活用したフル機能実装（Auth / DB / Storage）
+| Service | Responsibility |
+|--------|---------------|
+| Firebase | Media file storage |
+| MongoDB | Metadata management |
+| Supabase (planned) | Document storage and authentication |
 
-将来的に Supabase / AWS へ移行可能な構造を意識
+---
 
-デジタルノマド向けの長期プロジェクト基盤作り
+## Firebase
 
-🔮 Future Plans / 今後の拡張
-Folders
+Firebase Storage is used for large media files such as:
 
-Drag & Drop upload
+- videos
+- images
+- thumbnails
+- other media assets
 
-File preview modal
+Firebase is optimized for handling large file uploads and distribution.
 
-User profile avatar
+---
 
-Supabase migration version
+## MongoDB
 
-Full client-server separation
+MongoDB is responsible for storing metadata.
 
-👤 Author
-디지털노마드를꿈꾸다
+Examples
 
-GitHub: https://github.com/kieeler123
+- file metadata
+- indexing data
+- internal system data
+
+Large media files themselves are not stored in MongoDB.
+
+---
+
+## Supabase (Planned)
+
+Supabase will be introduced later for:
+
+- document storage
+- authentication
+- user management
+
+Supabase is based on PostgreSQL, which makes it suitable for structured relational data.
+
+---
+
+# Architecture Principle
+
+The project follows the principle:
+
+Right tool for the right responsibility
+
+Media → Firebase  
+Metadata → MongoDB  
+Documents/Auth → Supabase
+
+---
+
+# Technology Stack
+
+Frontend
+
+- React
+- TypeScript
+- Vite
+
+Backend
+
+- Node.js
+- Express
+
+Storage / Database
+
+- MongoDB
+- Firebase Storage
+- Supabase (planned)
+
+---
+
+# Development Philosophy
+
+This project records **not only the final implementation but also the entire development process**.
+
+Documentation includes:
+
+- architectural decisions
+- error handling processes
+- problem solving approaches
+- system design changes
+
+The goal is to maintain a clear record of how the system evolves over time.
+
+---
+
+# Experimental Nature of the Project
+
+This project is intentionally built as an **experimental backend environment**.
+
+It is used to test:
+
+- cloud storage architecture
+- multi-database systems
+- server architecture design
+- development documentation practices
+
+Because of this, the system may change frequently as new experiments are conducted.
+
+---
+
+# Future Plans
+
+- Supabase integration
+- authentication architecture experiments
+- improved metadata indexing
+- storage optimization
+- architecture documentation expansion
+
+---
+
+# Author
+
+Personal experimental backend architecture project.

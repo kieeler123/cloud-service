@@ -11,6 +11,7 @@ function inferKindByName(name: string) {
   if (["png", "jpg", "jpeg", "gif", "webp", "bmp"].includes(ext))
     return "image";
   if (["mp4", "webm", "mov", "m4v", "avi"].includes(ext)) return "video";
+  if (["pdf"].includes(ext)) return "pdf";
   return "file";
 }
 
@@ -18,8 +19,8 @@ export default function FileThumbnail({ file }: Props) {
   const kind = file.contentType?.startsWith("image/")
     ? "image"
     : file.contentType?.startsWith("video/")
-    ? "video"
-    : inferKindByName(file.name);
+      ? "video"
+      : inferKindByName(file.name);
 
   if (kind === "image") {
     return (

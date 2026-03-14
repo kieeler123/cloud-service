@@ -1,50 +1,21 @@
-import {
-  collection,
-  getDocs,
-  query,
-  updateDoc,
-  where,
-  doc,
-} from "firebase/firestore";
-import { db } from "@/lib/firebase";
-
 type Params = {
   ownerUid: string;
   name: string;
   size: number;
 };
 
-export async function trashDuplicateDriveFiles({
-  ownerUid,
-  name,
-  size,
-}: Params) {
-  const q = query(
-    collection(db, "files"),
-    where("ownerUid", "==", ownerUid),
-    where("name", "==", name),
-    where("size", "==", size),
-    where("isTrashed", "==", false),
-  );
+export async function trashDuplicateDriveFiles(params: Params) {
+  const res = await fetch("/api/cloud-files/trash-duplicates", {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(params),
+  });
 
-  const snapshot = await getDocs(q);
-
-  if (snapshot.empty) {
-    return { count: 0, ids: [] as string[] };
+  if (!res.ok) {
+    throw new Error("Failed to trash duplicate files");
   }
 
-  const ids: string[] = [];
-
-  for (const docSnap of snapshot.docs) {
-    await updateDoc(doc(db, "files", docSnap.id), {
-      isTrashed: true,
-      trashedAt: new Date(),
-    });
-    ids.push(docSnap.id);
-  }
-
-  return {
-    count: ids.length,
-    ids,
-  };
+  return res.json();
 }

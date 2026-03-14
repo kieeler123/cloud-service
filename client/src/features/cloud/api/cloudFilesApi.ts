@@ -8,7 +8,8 @@ export async function fetchCloudFiles() {
   );
 
   if (!res.ok) {
-    throw new Error("Failed to fetch cloud files");
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.code || "UNKNOWN_ERROR");
   }
 
   return res.json();

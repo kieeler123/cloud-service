@@ -1,9 +1,6 @@
 // src/App.tsx
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import type { User } from "firebase/auth";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "./lib/firebase";
 
 import LoginPage from "./features/pages/LoginPage";
 import DrivePage from "./features/drive/pages/DrivePage";
@@ -12,20 +9,57 @@ import AppLayout from "./layouts/AppLayout";
 import TrashPage from "./features/drive/pages/TrashPage";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import CloudHomePage from "./features/cloud/pages/CloudHomePage";
+import AuthCallbackPage from "./features/pages/CallbackPage";
+
+type MeResponse = {
+  ok: boolean;
+  user: {
+    uid: string;
+    email?: string;
+    name?: string;
+    picture?: string;
+  };
+};
+
+async function fetchMe(token: string): Promise<MeResponse> {
+  const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
+
+  const res = await fetch(`${baseUrl}/api/auth/me`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Unauthorized");
+  }
+
+  return res.json();
+}
 
 function App() {
-  console.log("App rendered");
-  const [user, setUser] = useState<User | null | undefined>(undefined);
+  const [ready, setReady] = useState(false);
+  const [authed, setAuthed] = useState(false);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (firebaseUser) => {
-      console.log("[App] onAuthStateChanged:", firebaseUser);
-      setUser(firebaseUser);
-    });
-    return () => unsub();
+    const token = localStorage.getItem("idToken") ?? "";
+
+    if (!token) {
+      setAuthed(false);
+      setReady(true);
+      return;
+    }
+
+    fetchMe(token)
+      .then(() => setAuthed(true))
+      .catch(() => {
+        localStorage.removeItem("idToken");
+        setAuthed(false);
+      })
+      .finally(() => setReady(true));
   }, []);
 
-  if (user === undefined) {
+  if (!ready) {
     return (
       <div className="min-h-screen bg-slate-950 text-slate-50 flex items-center justify-center px-4">
         <div className="flex flex-col items-center gap-4 sm:gap-6">
@@ -40,28 +74,31 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route
-            path="/cloud"
+            path="/login"
+            element={authed ? <Navigate to="/" replace /> : <LoginPage />}
+          />
+
+          <Route
+            path="/"
             element={
-              user ? (
+              authed ? (
                 <AppLayout>
-                  <CloudHomePage />
+                  <DrivePage />
                 </AppLayout>
               ) : (
                 <Navigate to="/login" replace />
               )
             }
           />
-          <Route
-            path="/login"
-            element={user ? <Navigate to="/" replace /> : <LoginPage />}
-          />
+
+          <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
           <Route
-            path="/"
+            path="/cloud"
             element={
-              user ? (
+              authed ? (
                 <AppLayout>
-                  <DrivePage />
+                  <CloudHomePage />
                 </AppLayout>
               ) : (
                 <Navigate to="/login" replace />
@@ -72,7 +109,7 @@ function App() {
           <Route
             path="/account"
             element={
-              user ? (
+              authed ? (
                 <AppLayout>
                   <AccountPage />
                 </AppLayout>
@@ -83,13 +120,9 @@ function App() {
           />
 
           <Route
-            path="*"
-            element={<Navigate to={user ? "/" : "/login"} replace />}
-          />
-          <Route
             path="/trash"
             element={
-              user ? (
+              authed ? (
                 <AppLayout>
                   <TrashPage />
                 </AppLayout>
@@ -97,6 +130,11 @@ function App() {
                 <Navigate to="/login" replace />
               )
             }
+          />
+
+          <Route
+            path="*"
+            element={<Navigate to={authed ? "/" : "/login"} replace />}
           />
         </Routes>
       </BrowserRouter>

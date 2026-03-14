@@ -1,82 +1,61 @@
 client/
   src/
     app/
-      router/
-      providers/
-
-    lib/
-      firebase.ts
-
-    features/
-      drive/
-        pages/
-          DrivePage.tsx
-          TrashPage.tsx
-
-        components/
-          FileThumbnail.tsx
-          DriveUploadButton.tsx
-          DriveFileList.tsx
-          DriveFileRow.tsx
-
-        hooks/
-          useDriveInfiniteFiles.ts
-
-        service/
-          uploadSingleDriveFile.ts
-          trashDuplicateDriveFiles.ts
-
-        utils/
-          fileDuplicate.ts
-          detectDriveFileKind.ts
-
-        types/
-          driveFile.types.ts
-
-      cloud/
-        api/
-          cloudFilesApi.ts
-
-        pages/
-          CloudHomePage.tsx
-          CloudTrashPage.tsx
-
-        hooks/
-          useCloudFiles.ts
-          useCloudTrashFiles.ts
-
-        components/
-          CloudFileList.tsx
-
-        types/
-          cloudFile.types.ts
-
-    pages/
-      LoginPage.tsx
-      AccountPage.tsx
-
-    layouts/
-      AppLayout.tsx
-
-    contexts/
-      ThemeContext.tsx
-
     components/
       LanguageSwitcher.tsx
       ThemeSwitcher.tsx
-server/
-  src/
-    app.ts
-    index.ts
-
-    config/
-      mongodb.ts
-
+    contexts/
+      ThemeContext.tsx
     features/
       cloud/
-        routes/
-          cloudFiles.routes.ts
+        api/
+          cloudFilesApi.ts
+        hooks/
+          useCloudFiles.ts
+        model/
+          cloudFile.types.ts
+        pages/
+          CloudHomePage.tsx
+        components/
+          CloudFileList.tsx
+      drive/
+        components/
+          FileGird.tsx
+          FileThumbnail.tsx
+        hooks/
+          useDriveInfiniteFiles.ts
+        pages/
+          DrivePage.tsx
+          TrashPage.tsx
+        service/
+          fetchDriveFilesPage.ts
+          trashDuplicateDriveFiles.ts
+          uploadSingleDriveFile.ts
+        utils/
+          detectDriveFileKind.ts
+          fileDuplicate.ts
+    pages/
+      AccountPage.tsx
+      LoginPage.tsx
+    layouts/
+      AppLayout.tsx
+    lib/
+      firebase.ts
+      i18n.ts
+server/
+  src/
+    app/
+      config/
+        mongodb.ts
+    features/
+      cloud/
+        model/
+          cloudFile.types.ts
         repo/
           cloudFilesRepo.ts
-        types/
-          cloudFile.types.ts
+        routes/
+          cloudFiles.routes.ts
+    firebase/
+      firebaseApp.ts
+    app.ts
+    index.ts
