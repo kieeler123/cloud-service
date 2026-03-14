@@ -9,9 +9,9 @@ import {
   where,
   doc,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase.js";
-import { adminDb, adminStorage } from "@/lib/firebaseAdmin.js";
-import { TrashDuplicateDriveFilesParams } from "@/types/drive.js";
+import { db } from "../../../lib/firebase.js";
+import { adminDb, adminStorage } from "../../../lib/firebaseAdmin.js";
+import { TrashDuplicateDriveFilesParams } from "../../../types/drive.js";
 import { createCloudFileMeta } from "../api/cloudFilesApi.js";
 
 const COLLECTION = "cloud_files";
