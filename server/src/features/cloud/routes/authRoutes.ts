@@ -2,8 +2,8 @@ import { Router } from "express";
 import {
   getGoogleAuthUrl,
   exchangeCodeForGoogleUser,
-} from "@/lib/googleOAuth.js";
-import { signSessionToken, type SessionUser } from "@/lib/jwt.js";
+} from "../../../lib/googleOAuth.js";
+import { signSessionToken, type SessionUser } from "../../../lib/jwt.js";
 import { requireAuth } from "../middlewares/requireAuth.js";
 
 declare global {
