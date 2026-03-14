@@ -1,4 +1,4 @@
-import { verifySessionToken } from "@/lib/jwt.js";
+import { verifySessionToken } from "../../../lib/jwt.js";
 import { type Request, type Response, type NextFunction } from "express";
 
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
