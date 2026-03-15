@@ -14,9 +14,9 @@ declare global {
   }
 }
 
-const router = Router();
+const authRoutes = Router();
 
-router.get("/google/start", (req, res) => {
+authRoutes.get("/google/start", (req, res) => {
   try {
     const redirectUrl = getGoogleAuthUrl();
     return res.redirect(redirectUrl);
@@ -30,7 +30,7 @@ router.get("/google/start", (req, res) => {
   }
 });
 
-router.get("/google/callback", async (req, res) => {
+authRoutes.get("/google/callback", async (req, res) => {
   try {
     const code = typeof req.query.code === "string" ? req.query.code : "";
 
@@ -61,17 +61,17 @@ router.get("/google/callback", async (req, res) => {
   }
 });
 
-router.get("/me", requireAuth, (req, res) => {
+authRoutes.get("/me", requireAuth, (req, res) => {
   return res.json({
     ok: true,
     user: req.user,
   });
 });
 
-router.post("/logout", (_req, res) => {
+authRoutes.post("/logout", (_req, res) => {
   return res.json({
     ok: true,
   });
 });
 
-export default router;
+export default authRoutes;
