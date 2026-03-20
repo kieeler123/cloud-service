@@ -1,8 +1,9 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import cloudFilesRoutes from "./features/cloud/routes/cloudFiles.routes.js";
 import authRoutes from "./features/cloud/routes/authRoutes.js";
+import cloudSyncRoutes from "./features/cloud/routes/cloudSync.routes.js";
+import cloudRoutes from "./features/cloud/routes/cloudFiles.routes.js";
 
 const app = express();
 
@@ -25,11 +26,7 @@ app.use("/api/cloud-files", (req, _res, next) => {
 app.get("/health", (_req, res) => {
   res.json({ ok: true });
 });
-
-app.get("/api/auth/test", (_req, res) => {
-  res.json({ ok: true, route: "auth-test" });
-});
-
-app.use("/api/cloud-files", cloudFilesRoutes);
+app.use("/api/cloud-files", cloudRoutes);
+app.use("/api/cloud-sync", cloudSyncRoutes);
 
 export default app;

@@ -84,6 +84,33 @@ export default function DrivePage() {
       pageSize: 12,
     });
 
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!hasMore || loadingMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry.isIntersecting) {
+          loadMore();
+        }
+      },
+      {
+        root: null,
+        rootMargin: "100px",
+        threshold: 0,
+      },
+    );
+
+    const el = loadMoreRef.current;
+    if (el) observer.observe(el);
+
+    return () => {
+      if (el) observer.unobserve(el);
+    };
+  }, [hasMore, loadingMore, loadMore]);
+
   const handleOpenFilePicker = () => {
     fileInputRef.current?.click();
   };
@@ -208,6 +235,8 @@ export default function DrivePage() {
           ))}
         </div>
       )}
+
+      {files.length > 0 && <div ref={loadMoreRef} className="h-10" />}
 
       {hasMore ? (
         <div className="mt-6 flex justify-center">

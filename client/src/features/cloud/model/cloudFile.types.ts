@@ -22,3 +22,22 @@ export type CloudFileMeta = {
   createdAt: Date;
   updatedAt: Date;
 };
+
+export type CloudFileItem = {
+  id: string;
+  name: string;
+  size: number;
+  path: string;
+  downloadURL: string | null;
+  contentType: string;
+  createdAt: string | null;
+  isTrashed: boolean;
+  metadataStatus?: "temp" | "complete";
+};
+
+export type CloudFilesPageResponse = {
+  ok: boolean;
+  items: CloudFileItem[];
+  nextCursor: string | null;
+  hasMore: boolean;
+};

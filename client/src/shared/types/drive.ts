@@ -3,10 +3,10 @@ export type DriveFile = {
   name: string;
   size: number;
   path: string;
-  downloadURL: string;
-  contentType?: string;
-  createdAt?: string | null;
-  isTrashed?: boolean;
+  downloadURL: string | null;
+  contentType: string;
+  createdAt: string | null;
+  isTrashed: boolean;
 };
 
 export type FetchDriveFilesPageParams = {
@@ -43,7 +43,7 @@ export type TrashFile = {
   id: string;
   name: string;
   size: number;
-  downloadURL: string;
+  downloadURL: string | null;
   path: string;
   createdAt?: string | null;
   trashedAt?: string | null;

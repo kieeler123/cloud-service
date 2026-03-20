@@ -1,17 +1,22 @@
 type Props = {
   file: {
     name: string;
-    downloadURL: string;
+    downloadURL: string | null;
     contentType?: string;
   };
 };
 
 function inferKindByName(name: string) {
   const ext = name.split(".").pop()?.toLowerCase() ?? "";
-  if (["png", "jpg", "jpeg", "gif", "webp", "bmp"].includes(ext))
+  if (["png", "jpg", "jpeg", "gif", "webp", "bmp"].includes(ext)) {
     return "image";
-  if (["mp4", "webm", "mov", "m4v", "avi"].includes(ext)) return "video";
-  if (["pdf"].includes(ext)) return "pdf";
+  }
+  if (["mp4", "webm", "mov", "m4v", "avi"].includes(ext)) {
+    return "video";
+  }
+  if (["pdf"].includes(ext)) {
+    return "pdf";
+  }
   return "file";
 }
 
@@ -22,20 +27,19 @@ export default function FileThumbnail({ file }: Props) {
       ? "video"
       : inferKindByName(file.name);
 
-  if (kind === "image") {
+  if (kind === "image" && file.downloadURL) {
     return (
       <img
         src={file.downloadURL}
         alt={file.name}
-        className="h-32 w-full object-cover rounded-lg"
+        className="h-32 w-full rounded-lg object-cover"
         loading="lazy"
       />
     );
   }
 
-  // 그 외 파일
   return (
-    <div className="h-32 w-full flex items-center justify-center rounded-lg bg-slate-800 text-slate-400 text-xs">
+    <div className="flex h-32 w-full items-center justify-center rounded-lg bg-slate-800 text-xs text-slate-400">
       FILE
     </div>
   );

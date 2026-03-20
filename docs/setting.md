@@ -49,13 +49,27 @@ server/
         mongodb.ts
     features/
       cloud/
-        model/
+        controllers/
+          cloudFilesApi.ts
+        middlewares/
+          requireAuth.ts
+        models/
           cloudFile.types.ts
         repo/
           cloudFilesRepo.ts
         routes/
+          authRoutes.ts
           cloudFiles.routes.ts
-    firebase/
-      firebaseApp.ts
+      services/
+        cloudStorageService.ts
+      lib/
+        firebase.ts
+        firebaseAdmin.ts
+        googleOAuth.ts
+        jwt.ts
+      types/
+        auth.ts
+        drive.ts
     app.ts
     index.ts
+    migrateOwnerUid.ts
