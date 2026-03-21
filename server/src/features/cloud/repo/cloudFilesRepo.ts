@@ -1,4 +1,4 @@
-import { CloudFileModel } from "../models/CloudFile.js";
+import { CloudFileModel } from "../models/CloudFile.model.js";
 import type {
   CloudFileDoc,
   CloudFileInput,

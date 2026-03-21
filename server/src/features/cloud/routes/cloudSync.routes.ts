@@ -1,7 +1,8 @@
 import express from "express";
 import { requireAuth } from "../middlewares/requireAuth.js";
-import { syncFirebaseStorageToMongo } from "../../services/syncFirebaseStorageToMongo.js";
+import { syncFirebaseStorageToMongo } from "../../../services/cloud-files/syncFirebaseStorageToMongo.js";
 import { insertManyIgnoreDuplicate } from "../repo/cloudFilesRepo.js";
+import { migrateFirestoreCloudFilesToMongo } from "@/services/cloud-files/migrateFirestoreCloudFilesToMongo.js";
 
 const cloudSyncRoutes = express.Router();
 
@@ -111,6 +112,63 @@ cloudSyncRoutes.get("/sync.json", async (_req, res) => {
       ok: false,
       message: error instanceof Error ? error.message : "Unknown sync error",
     });
+  }
+});
+
+cloudSyncRoutes.get("/migrate-firestore-to-mongo", async (req, res) => {
+  try {
+    const collectionName =
+      typeof req.query.collection === "string" ? req.query.collection : "files";
+
+    const dryRun = req.query.dryRun === "true";
+    const limit =
+      typeof req.query.limit === "string" ? Number(req.query.limit) : undefined;
+
+    const result = await migrateFirestoreCloudFilesToMongo({
+      collectionName,
+      dryRun,
+      limit: Number.isFinite(limit) ? limit : undefined,
+    });
+
+    return res.send(`
+      <html>
+        <body style="font-family:sans-serif;padding:24px">
+          <h1>Firestore → Mongo Migration</h1>
+          <p><strong>${dryRun ? "Dry Run 완료" : "이관 완료"}</strong></p>
+          <ul>
+            <li>collectionName: ${collectionName}</li>
+            <li>scannedCount: ${result.scannedCount}</li>
+            <li>insertedCount: ${result.insertedCount}</li>
+            <li>updatedCount: ${result.updatedCount}</li>
+            <li>skippedCount: ${result.skippedCount}</li>
+            <li>failedCount: ${result.failedCount}</li>
+          </ul>
+          <p>브라우저 콘솔에서 상세 결과를 볼 수 있습니다.</p>
+          <script>
+            console.log("migration summary", ${JSON.stringify({
+              collectionName,
+              scannedCount: result.scannedCount,
+              insertedCount: result.insertedCount,
+              updatedCount: result.updatedCount,
+              skippedCount: result.skippedCount,
+              failedCount: result.failedCount,
+            })});
+            console.table(${JSON.stringify(result.results)});
+          </script>
+        </body>
+      </html>
+    `);
+  } catch (error) {
+    console.error("migrate-firestore-to-mongo route error:", error);
+
+    return res.status(500).send(`
+      <html>
+        <body style="font-family:sans-serif;padding:24px">
+          <h1>Migration Failed</h1>
+          <pre>${error instanceof Error ? error.message : "Unknown migration error"}</pre>
+        </body>
+      </html>
+    `);
   }
 });
 

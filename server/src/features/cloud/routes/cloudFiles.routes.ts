@@ -8,8 +8,8 @@ import {
   deleteCloudFileForeverById,
   trashDuplicateDriveFiles,
   trashCloudFilesByFileIds,
-} from "../../services/cloudStorageService.js";
-import { CloudFileModel } from "../models/CloudFile.js";
+} from "../../../services/cloud-files/cloudStorageService.js";
+import { CloudFileModel } from "../models/CloudFile.model.js";
 
 const cloudRoutes = express.Router();
 

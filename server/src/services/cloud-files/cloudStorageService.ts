@@ -1,6 +1,6 @@
 import { adminDb, adminStorage } from "../../lib/firebaseAdmin.js";
-import { createCloudFileMeta } from "../cloud/controllers/cloudFilesApi.js";
-import { trashCloudFilesByFileIds as trashCloudFilesByFileIdsRepo } from "../cloud/repo/cloudFilesRepo.js";
+import { createCloudFileMeta } from "../../features/cloud/controllers/cloudFilesApi.js";
+import { trashCloudFilesByFileIds as trashCloudFilesByFileIdsRepo } from "../../features/cloud/repo/cloudFilesRepo.js";
 import type { TrashDuplicateDriveFilesParams } from "../../types/drive.js";
 
 type FindDriveFilesPageParams = {

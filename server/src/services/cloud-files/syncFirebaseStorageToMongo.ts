@@ -1,6 +1,6 @@
 import path from "node:path";
 import { adminStorage } from "../../lib/firebaseAdmin.js";
-import { CloudFileModel } from "../cloud/models/CloudFile.js";
+import { CloudFileModel } from "../../features/cloud/models/CloudFile.model.js";
 import type { CloudFileInput } from "../../types/cloudFile.types.js";
 
 type SyncFileResult = {
@@ -49,6 +49,28 @@ function makeTempFileId(bucket: string, filePath: string) {
 type SyncFirebaseStorageToMongoParams = {
   prefix?: string;
   limit?: number;
+};
+
+export type MigrateFirestoreCloudFilesOptions = {
+  collectionName: string;
+  dryRun?: boolean;
+  limit?: number;
+};
+
+export type MigrateFirestoreCloudFilesResultItem = {
+  firestoreDocId: string;
+  fileId?: string;
+  status: "inserted" | "updated" | "skipped" | "failed";
+  reason?: string;
+};
+
+export type MigrateFirestoreCloudFilesResult = {
+  scannedCount: number;
+  insertedCount: number;
+  updatedCount: number;
+  skippedCount: number;
+  failedCount: number;
+  results: MigrateFirestoreCloudFilesResultItem[];
 };
 
 export async function syncFirebaseStorageToMongo({
