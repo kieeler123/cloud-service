@@ -19,3 +19,17 @@ async function bootstrap() {
 }
 
 bootstrap();
+
+import { supabaseAdmin } from "./lib/supabaseAdmin.js";
+
+async function testSupabase() {
+  const { data, error } = await supabaseAdmin.storage.listBuckets();
+
+  if (error) {
+    console.error("❌ 연결 실패:", error);
+  } else {
+    console.log("✅ 연결 성공:", data);
+  }
+}
+
+testSupabase();

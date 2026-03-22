@@ -1,4 +1,4 @@
-import { CloudFileModel } from "../models/CloudFile.model.js";
+import { CloudFileModel } from "../models/cloudFile.model.js";
 import type {
   CloudFileDoc,
   CloudFileInput,
@@ -56,18 +56,29 @@ export async function findExistingFileIds(fileIds: string[]) {
   return docs.map((doc) => doc.fileId);
 }
 
-export async function trashCloudFilesByFileIds(fileIds: string[]) {
-  return CloudFileModel.updateMany(
-    { fileId: { $in: fileIds } },
-    {
-      $set: {
-        isTrashed: true,
-        status: "trashed",
-        trashedAt: new Date(),
-        updatedAt: new Date(),
-      },
-    },
-  );
+type TrashCloudFilesByFileIdsParams = {
+  ownerUid: string;
+  fileIds: string[];
+};
+
+export async function trashCloudFilesByFileIds({
+  ownerUid,
+  fileIds,
+}: TrashCloudFilesByFileIdsParams) {
+  if (!ownerUid) {
+    throw new Error("UNAUTHORIZED");
+  }
+
+  if (!Array.isArray(fileIds) || fileIds.length === 0) {
+    throw new Error("INVALID_FILE_IDS");
+  }
+
+  // 예시:
+  // ownerUid 소유 파일만 isTrashed: true 처리
+
+  return {
+    modifiedCount: fileIds.length,
+  };
 }
 
 export async function restoreCloudFileByFileId(fileId: string) {

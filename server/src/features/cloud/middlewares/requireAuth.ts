@@ -3,6 +3,8 @@ import { type Request, type Response, type NextFunction } from "express";
 
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
   try {
+    console.log("auth header:", req.headers.authorization);
+
     const authHeader = req.headers.authorization;
     if (!authHeader) {
       return res.status(401).json({ ok: false, code: "MISSING_AUTH_HEADER" });

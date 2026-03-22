@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { adminDb } from "../src/lib/firebaseAdmin.js";
+import { adminDb } from "./lib/firebaseAdmin.js";
 
 async function migrateOwnerUid() {
   const oldUid = process.env.MIGRATE_OLD_UID;

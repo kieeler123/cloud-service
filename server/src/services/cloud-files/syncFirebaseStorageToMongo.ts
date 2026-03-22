@@ -1,7 +1,7 @@
 import path from "node:path";
 import { adminStorage } from "../../lib/firebaseAdmin.js";
-import { CloudFileModel } from "../../features/cloud/models/CloudFile.model.js";
 import type { CloudFileInput } from "../../types/cloudFile.types.js";
+import { CloudFileModel } from "../../features/cloud/models/cloudFile.model.js";
 
 type SyncFileResult = {
   path: string;

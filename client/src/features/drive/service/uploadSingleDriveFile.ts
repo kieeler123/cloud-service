@@ -1,3 +1,5 @@
+import { createClientErrorLog } from "../utils/clientErrorLog";
+
 type Params = {
   file: File;
   onProgress?: (progress: number) => void;
@@ -37,7 +39,29 @@ export function uploadSingleDriveFile({
     };
 
     xhr.onerror = () => {
-      reject(new Error("FAILED_TO_UPLOAD_FILE"));
+      const error = new Error("NETWORK_ERROR");
+
+      createClientErrorLog({
+        action: "UPLOAD_FILE",
+        code: "CLIENT_NETWORK_ERROR",
+        message: "Upload request failed",
+        rawMessage: error.message,
+        meta: {
+          endpoint: "/api/cloud-files/upload",
+        },
+      });
+
+      reject(error);
+    };
+
+    xhr.ontimeout = () => {
+      createClientErrorLog({
+        action: "UPLOAD_FILE",
+        code: "CLIENT_TIMEOUT",
+        message: "Upload timeout",
+      });
+
+      reject(new Error("TIMEOUT"));
     };
 
     xhr.onload = () => {

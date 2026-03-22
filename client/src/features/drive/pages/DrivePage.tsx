@@ -3,6 +3,8 @@ import { useDriveInfiniteFiles } from "../hooks/useDriveInfiniteFiles";
 import FileThumbnail from "../components/FileThumbnail";
 import type { MeResponse } from "@/shared/types/auth";
 import { uploadSingleDriveFile } from "../service/uploadSingleDriveFile";
+import { useTranslation } from "react-i18next";
+import { flushClientErrorLogs } from "../utils/clientErrorLog";
 
 type PendingUpload = {
   id: string;
@@ -50,10 +52,39 @@ export default function DrivePage() {
   const [ready, setReady] = useState(false);
   const [meError, setMeError] = useState<string | null>(null);
 
+  const { t } = useTranslation();
+
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [pendingUploads, setPendingUploads] = useState<PendingUpload[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // 앱 시작
+  useEffect(() => {
+    flushClientErrorLogs();
+  }, []);
+
+  // 네트워크 복구
+  useEffect(() => {
+    const handleOnline = () => {
+      flushClientErrorLogs();
+    };
+
+    window.addEventListener("online", handleOnline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+    };
+  }, []);
+
+  // 🔥 서버 복구 대비 (핵심)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      flushClientErrorLogs();
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const savedToken = localStorage.getItem("idToken") ?? "";
@@ -186,7 +217,7 @@ export default function DrivePage() {
   return (
     <section className="p-6">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold text-white">Drive</h1>
+        <h1 className="text-xl font-semibold text-white">{t("app.name")}</h1>
 
         <div className="flex items-center gap-2">
           <input
@@ -219,20 +250,24 @@ export default function DrivePage() {
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
-          {files.map((file) => (
-            <article
-              key={file.id}
-              className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60"
-            >
-              <FileThumbnail file={file} />
-              <div className="p-3">
-                <div className="truncate text-sm text-white">{file.name}</div>
-                <div className="mt-1 text-xs text-slate-400">
-                  {(file.size / 1024 / 1024).toFixed(2)} MB
+          {files.map((file, index) => {
+            const itemKey =
+              file.id || file.id || file.path || `fallback-${index}`;
+            return (
+              <article
+                key={itemKey}
+                className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60"
+              >
+                <FileThumbnail file={file} />
+                <div className="p-3">
+                  <div className="truncate text-sm text-white">{file.name}</div>
+                  <div className="mt-1 text-xs text-slate-400">
+                    {(file.size / 1024 / 1024).toFixed(2)} MB
+                  </div>
                 </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
       )}
 
