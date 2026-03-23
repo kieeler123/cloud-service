@@ -1,8 +1,8 @@
-import { supabaseAdmin } from "@/lib/supabaseAdmin.js";
-import { adminDb } from "@/lib/firebaseAdmin.js"; // Mongo 쓰는 부분 유지
-import { UploadCloudFileParams } from "@/types/cloudStorage.types.js";
-import { detectDriveFileKind } from "@/utils/cloudStorage.utils.js";
-import { createCloudFileMeta } from "@/features/cloud/controllers/cloudFilesApi.js";
+import { supabaseAdmin } from "../../lib/supabaseAdmin.js";
+import { adminDb } from "../../lib/firebaseAdmin.js"; // Mongo 쓰는 부분 유지
+import { UploadCloudFileParams } from "../../types/cloudStorage.types.js";
+import { detectDriveFileKind } from "../../utils/cloudStorage.utils.js";
+import { createCloudFileMeta } from "../../features/cloud/controllers/cloudFilesApi.js";
 
 export async function uploadCloudFileSupabase({
   ownerUid,
