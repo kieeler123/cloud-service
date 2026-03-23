@@ -1,4 +1,3 @@
-// src/models/cloudFile.model.ts
 import { Schema, model, InferSchemaType } from "mongoose";
 
 const CloudFileSchema = new Schema(
